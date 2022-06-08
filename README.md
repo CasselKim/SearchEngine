@@ -8,7 +8,10 @@
     - cosine scoring
 
 ## Requirements
-- konlpy (Mecab)
+- Ubuntu 18.04
+- python 3.8.10
+- konlpy
+- Mecab
 - g++
 - openjdk-8-jdk
 - python3-dev
