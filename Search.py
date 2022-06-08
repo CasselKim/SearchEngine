@@ -9,14 +9,16 @@ from functools import reduce
 collection = sorted(glob('corpus/*.xml'))
 #print(collection)
 
+
 # parsing xml files
 docs = []
-for doc in collection : 
+for i,doc in enumerate(collection) : 
     tree = ET.parse(doc)
-    content = tree.find("title").text + '\n' + tree.find("text").find("p").text
+    title = ' '.join(tree.find("title").text.split(' ')[1:])
+    content = title + '\n' + tree.find("text").find("p").text
     docs.append(content)
-#print(docs)
 
+#print(docs)
 
 def docsToDict(docs,SMART) : 
     # change into morphs, make dictionary using Mecab
@@ -26,10 +28,12 @@ def docsToDict(docs,SMART) :
 
     D = defaultdict(list)
     mecab = Mecab()
-    counters = [Counter(mecab.morphs(x)) for x in docs]
+    counters = [Counter([y[0] for y in mecab.pos(x) if y[1] in ('VV','VA','VX','VCP','VCN','MM','MAG','MAJ','IC','SL','SH','SN')]+mecab.nouns(x)) for x in docs]
+    #counters = [Counter(mecab.morphs(x)) for x in docs]
+    #print(counters)
     common = reduce(lambda a,b : a+b,counters)
-    for x in common : 
-        common[x] /= len(docs)
+    #for x in common : 
+    #    common[x] /= len(docs)
     
     # tf
     relates = []
@@ -85,9 +89,6 @@ def docsToDict(docs,SMART) :
     return D
 
 documents = docsToDict(docs,'ltc')
-
-q1 = '조지아에 사는 제임스 주니어 대통령은 한국과의 관계에서 우호적인 입장을 취했다.'
-q2 = '체첸군의 그룹들은 모두 밀접하게 관련되어있다.'
 query = input("쿼리를 입력하세요 : ")
 print("쿼리 :",query)
 query = docsToDict([query],'lnc')
@@ -98,10 +99,14 @@ for query_term in query :
     for doc_info in documents[query_term] : 
         docID, doc_weight = doc_info
         score[docID] += query_weight*doc_weight
+
+
 print('======================')
-for i in sorted(score,key=lambda x: score[x],reverse=True) : 
-    print(docs[i])
-    print("score :",score[i])
+for i,num in enumerate(sorted(score,key=lambda x: score[x],reverse=True)) : 
+    if i==5 : break
+    print(num+1,docs[num])
+    print("score :",score[num])
+
 
 
 
